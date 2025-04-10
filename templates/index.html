@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Luxury Travel Concierge</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body class="theme-default">
+  <div class="toggle-wrapper">
+    <label class="switch">
+      <input type="checkbox" id="mode-toggle">
+      <span class="slider round"></span>
+    </label>
+    <select id="theme-select">
+      <option value="default">🌐 Default</option>
+      <option value="beach">🏖 Beach</option>
+      <option value="mountain">⛰ Mountain</option>
+      <option value="city">🌆 City</option>
+    </select>
+  </div>
+
+  <header class="hero-section">
+    <h1>🌴 Welcome to AI Luxury Travel Concierge 🌍</h1>
+    <p>Your personal assistant for elegant getaways, luxury stays, and thrilling experiences.</p>
+  </header>
+
+  <section class="features glass">
+    <div class="feature"><span>🏨</span><h3>Hotels</h3><p>Find top-rated luxury hotels.</p></div>
+    <div class="feature"><span>🥾</span><h3>Adventures</h3><p>Outdoor thrills curated for you.</p></div>
+    <div class="feature"><span>🍽️</span><h3>Dining</h3><p>Discover top fine-dining spots.</p></div>
+    <div class="feature"><span>🛶</span><h3>Activities</h3><p>Explore scuba, trekking & more.</p></div>
+  </section>
+
+  <div class="chat-container glass elevated-chat">
+    <h2>💬 Chat with Your Concierge</h2>
+    <div id="chat-box" class="chat-box bubble-style"></div>
+    <div id="spinner" class="spinner" style="display: none;"></div>
+    <div class="input-container">
+      <input type="text" id="user-input" placeholder="Ask me about luxury travel..." />
+      <button onclick="sendMessage()">Send</button>
+      <button onclick="startVoice()" title="🎤 Speak"><span>🎤</span></button>
+    </div>
+  </div>
+
+  <footer class="sticky-footer">© 2025 AI Luxury Travel Concierge</footer>
+
+  <div class="floating-buttons">
+    <button onclick="quickMessage('Things to do in Goa')">Goa</button>
+    <button onclick="quickMessage('Luxury hotels in Kerala')">Kerala</button>
+    <button onclick="quickMessage('Adventures in Ladakh')">Ladakh</button>
+  </div>
+
+  <script>
+    const toggle = document.getElementById('mode-toggle');
+    const themeSelect = document.getElementById('theme-select');
+    const chatBox = document.getElementById('chat-box');
+
+    toggle.addEventListener('change', () => document.body.classList.toggle('dark-mode'));
+    themeSelect.addEventListener('change', () => {
+      document.body.className = 'theme-' + themeSelect.value;
+    });
+
+    function quickMessage(msg) {
+      document.getElementById("user-input").value = msg;
+      sendMessage();
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('user-input');
+      const message = input.value.trim();
+      if (!message) return;
+
+      chatBox.innerHTML += `
+        <div class="message user-msg">
+          <div class="bubble-text">
+            <span class="bubble user-bubble">${message}</span>
+            <img src="/static/userav.webp" class="avatar user-avatar">
+          </div>
+        </div>`;
+      input.value = '';
+      document.getElementById('spinner').style.display = 'block';
+
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      });
+      const data = await res.json();
+
+      document.getElementById('spinner').style.display = 'none';
+      chatBox.innerHTML += `
+        <div class="message ai-msg">
+          <div class="bubble-text">
+            <img src="/static/chatbot.jpg" class="avatar ai-avatar">
+            <span class="bubble ai-bubble typing">${data.reply}</span>
+          </div>
+        </div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function startVoice() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-IN';
+      recognition.start();
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('user-input').value = transcript;
+        sendMessage();
+      };
+    }
+  </script>
+</body>
+</html>
